@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:twitter_demo/screens/main_drawer.dart';
+import 'package:twitter_demo/screens/main_tabs/messaging.dart';
+import 'package:twitter_demo/screens/main_tabs/notifications.dart';
+import 'package:twitter_demo/screens/main_tabs/search.dart';
+import 'package:twitter_demo/screens/main_tabs/timeline.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,25 +13,116 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme:ThemeData.light(),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      theme: ThemeData.light(),
+      home: MainScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
+class MainScreen extends StatefulWidget {
+  MainScreen({Key key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  MainScreenState createState() => MainScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  PageController _tabController;
+  String _title;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = new PageController();
+    _title = TabItems[0].title;
+    _selectedIndex = 0;
+  }
+
+  Widget tweets() {
+    return ListView.builder(
+        itemCount: 5,
+        itemBuilder: (BuildContext ctxt, int index) {
+          return new Text('helo');
+        });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void onTap(int tab) {
+    _tabController.jumpToPage(tab);
+  }
+
+  void onTabChanged(int tab) {
+    setState(() {
+      this._selectedIndex = tab;
+    });
+
+    this._title = TabItems[tab].title;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: null,
+        child: Icon(Icons.edit),
+      ),
+      drawer: Drawer(child: MainDrawer()),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        items: TabItems.map((TabItem item) {
+          return new BottomNavigationBarItem(
+            title: new Text(
+              item.title,
+            ),
+            icon: new Icon(item.icon),
+          );
+        }).toList(),
+        unselectedItemColor: Colors.black45,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        selectedItemColor: Colors.blue,
+        currentIndex: _selectedIndex,
+        onTap: onTap,
+      ),
+      body:
+//      CustomScrollView(
+//        slivers: <Widget>[
+//          SliverAppBar(
+//            title: _titles.elementAt(_selectedIndex),
+//            floating: true,
+//          ),
+//
+////          Silv
+          PageView(
+            controller: _tabController,
+            onPageChanged: onTabChanged,
+            children: <Widget>[
+              TimeLine(),
+              Search(),
+              Notifications(),
+              Messaging()
+            ],
+          )
+//        ],
+//      ),
+    );
+  }
 
   static const TextStyle optionStyle =
       TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+
+  static const List<TabItem> TabItems = const <TabItem>[
+    const TabItem(title: 'TimeLine', icon: Icons.home),
+    const TabItem(title: 'Hashtag & search', icon: Icons.search),
+    const TabItem(title: 'Notifications', icon: Icons.notifications),
+    const TabItem(title: 'DM', icon: Icons.message)
+  ];
 
   static const List<Widget> _titles = <Widget>[
     Text(
@@ -62,110 +158,11 @@ class _MyHomePageState extends State<MyHomePage> {
 //      style: optionStyle,
     ),
   ];
+}
 
-  Widget tweets() {
-    return ListView.builder(
-        itemCount: 5,
-        itemBuilder: (BuildContext ctxt, int index) {
-          return new Text('helo');
-        });
-  }
+class TabItem {
+  final String title;
+  final IconData icon;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(onPressed: null,child: Icon( Icons.edit),),
-      drawer: Drawer(
-          child: ListView(
-        children: <Widget>[
-          UserAccountsDrawerHeader(
-            accountName: Text('Name'),
-            accountEmail: Text('@nickname'),
-            currentAccountPicture: Icon(Icons.whatshot),
-          ),
-          ListTile(
-            title: Text("Profile"),
-            leading: Icon(Icons.account_circle),
-          ),
-          ListTile(
-            title: Text("Lists"),
-            leading: Icon(Icons.list),
-          ),
-          ListTile(
-            title: Text("Saved items"),
-            leading: Icon(Icons.save),
-          ),
-          ListTile(
-            title: Text("Moments"),
-            leading: Icon(Icons.whatshot),
-          ),
-          Divider(),
-          ListTile(
-            title: Text("Config & privacy"),
-          ),
-          ListTile(
-            title: Text("Help Center"),
-          ),
-        ],
-      )),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('Home'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            title: Text('Search'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            title: Text('Notifications'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            title: Text('Messages'),
-          ),
-        ],
-        unselectedItemColor: Colors.black45,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        selectedItemColor: Colors.blue,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-      ),
-      body: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            title: _titles.elementAt(_selectedIndex),
-            floating: true,
-          ),
-          SliverList(delegate: SliverChildListDelegate(timelineBuilder()))
-        ],
-      ),
-    );
-  }
-
-  List timelineBuilder() {
-    List<Widget> tweets = List();
-    for (int i = 0; i < 50; i++) {
-      Widget tweet = new ListTile(
-        trailing: Text('1h'),
-        leading: Icon(Icons.account_circle),
-        title: Text('Helow'),
-        subtitle: Text(
-            'asdfgjhkhg asdfgjhkhg asdfgjhkhgasdfgjhkhgasdfgjhkhg asdfgjhkhg asdfgjhkhg  '),
-      );
-
-      tweets.add(tweet);
-    }
-    return tweets;
-  }
+  const TabItem({this.title, this.icon});
 }
